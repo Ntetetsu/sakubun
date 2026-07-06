@@ -3,98 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>げんこうようしチェッカー - アシスト＆チェック統合版</title>
+<title>げんこうようしチェッカー - アシスト＆チェック 1画面統合版</title>
 <style>
 :root{
   --primary:#d35400;--bg-color:#fcf8f2;--card-bg:#fff;--text-main:#333;
   --genkou-line:#d58a62;--check-bg:#f9ebea;--check-active:#27ae60;
-  --cell-size:35px;--filled-bg:#b9f6ca;--filled-border:#00a152;
+  --cell-size:28px; /* 全体が画面に収まるようにマス目を少し小さく調整 */
+  --filled-bg:#b9f6ca;--filled-border:#00a152;
   --active-bg:#ff8a80;--active-border:#d50000;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:"Hiragino Maru Gothic ProN","Meiryo",sans-serif;background:var(--bg-color);color:var(--text-main);padding:20px;}
+body{font-family:"Hiragino Maru Gothic ProN","Meiryo",sans-serif;background:var(--bg-color);color:var(--text-main);padding:10px;}
 ruby{ruby-align:center;}rt{font-size:.6em;color:#666;}
-.header{text-align:center;margin-bottom:20px;padding-bottom:10px;border-bottom:3px dashed var(--genkou-line);}
-.header h1{color:var(--primary);font-size:2rem;margin-bottom:5px;}
-.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 400px;gap:25px;}
+
+/* ヘッダーのコンパクト化 */
+.header{text-align:center;margin-bottom:10px;padding-bottom:5px;border-bottom:3px dashed var(--genkou-line);}
+.header h1{color:var(--primary);font-size:1.5rem;margin-bottom:2px;}
+.header p{font-size:0.9rem;}
+
+.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 400px;gap:15px;}
 @media(max-width:1000px){.container{grid-template-columns:1fr;}}
-.card{background:var(--card-bg);border-radius:12px;padding:20px;box-shadow:0 6px 12px rgba(139,119,91,.15);border:2px solid #f1c40f;position:relative;display:flex;flex-direction:column;max-height:85vh;}
-.card h2{font-size:1.4rem;margin-bottom:15px;color:#2c3e50;display:flex;align-items:center;gap:8px;}
-.controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;}
-.action-buttons{display:flex;gap:8px;flex-wrap:wrap;}
-.btn{color:#fff;border:none;padding:8px 16px;border-radius:20px;cursor:pointer;font-weight:bold;transition:.1s;}
+
+/* カードのコンパクト化（スクロール制限を解除） */
+.card{background:var(--card-bg);border-radius:12px;padding:15px;box-shadow:0 6px 12px rgba(139,119,91,.15);border:2px solid #f1c40f;position:relative;display:flex;flex-direction:column;}
+.card h2{font-size:1.1rem;margin-bottom:10px;color:#2c3e50;display:flex;align-items:center;gap:8px;}
+.controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;}
+.action-buttons{display:flex;gap:6px;flex-wrap:wrap;}
+.btn{color:#fff;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:0.85rem;font-weight:bold;transition:.1s;}
 .btn:active{transform:translateY(3px);box-shadow:none!important;}
 .reset-btn{background:#3498db;box-shadow:0 3px 0 #2980b9;}
 .clear-btn{background:#e74c3c;box-shadow:0 3px 0 #c0392b;}
 .copy-btn{background:#9b59b6;box-shadow:0 3px 0 #8e44ad;}
-.hint-text{font-size:.9rem;color:#7f8c8d;margin-bottom:6px;}
-.cell-legend{display:flex;gap:14px;align-items:center;margin:8px 0 12px;font-size:.9rem;color:#333;font-weight:bold;flex-wrap:wrap;}
+.hint-text{font-size:.8rem;color:#7f8c8d;margin-bottom:6px;}
+.cell-legend{display:flex;gap:14px;align-items:center;margin:6px 0 10px;font-size:.85rem;color:#333;font-weight:bold;flex-wrap:wrap;}
 .cell-legend span{display:inline-flex;align-items:center;gap:6px;}
-.cell-legend b{display:inline-block;width:22px;height:22px;border-radius:5px;}
-.legend-filled{background:var(--filled-bg);border:3px solid var(--filled-border);}
-.legend-current{background:var(--active-bg);border:4px solid var(--active-border);box-shadow:0 0 0 2px #fff inset;}
+.cell-legend b{display:inline-block;width:20px;height:20px;border-radius:5px;}
+.legend-filled{background:var(--filled-bg);border:2px solid var(--filled-border);}
+.legend-current{background:var(--active-bg);border:3px solid var(--active-border);box-shadow:0 0 0 2px #fff inset;}
 
 /* エディタ部分 */
-.editor-container{position:relative;background:#fff;padding:20px;border-radius:8px;box-shadow:inset 0 0 10px rgba(0,0,0,.05);overflow:auto;display:flex;justify-content:center;flex-grow:1;}
+.editor-container{position:relative;background:#fff;padding:10px;border-radius:8px;box-shadow:inset 0 0 10px rgba(0,0,0,.05);display:flex;justify-content:center;flex-grow:1;}
 .genkou-shell{position:relative;width:calc(var(--cell-size)*20);height:calc(var(--cell-size)*20);flex-shrink:0;}
 .genkou-grid{position:absolute;inset:0;border:2px solid var(--genkou-line);background:#fffdf9;}
 .genkou-grid::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(to right,var(--genkou-line) 1px,transparent 1px),linear-gradient(to bottom,var(--genkou-line) 1px,transparent 1px);background-size:var(--cell-size) var(--cell-size);}
-.cell{position:absolute;width:var(--cell-size);height:var(--cell-size);display:flex;align-items:center;justify-content:center;font-family:"BIZ UDMincho","YuMincho","MS Mincho",serif;font-size:24px;line-height:1;outline:none;border:1px solid rgba(213,138,98,.55);background:transparent;z-index:1;overflow:hidden;}
+.cell{position:absolute;width:var(--cell-size);height:var(--cell-size);display:flex;align-items:center;justify-content:center;font-family:"BIZ UDMincho","YuMincho","MS Mincho",serif;font-size:18px;line-height:1;outline:none;border:1px solid rgba(213,138,98,.55);background:transparent;z-index:1;overflow:hidden;}
 .cell.has-text{background:var(--filled-bg)!important;border:3px solid var(--filled-border)!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.75)!important;}
-.cell.active-cell{background:var(--active-bg)!important;border:5px solid var(--active-border)!important;box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 0 7px rgba(213,0,0,.30),inset 0 0 0 2px rgba(255,255,255,.7)!important;z-index:5!important;animation:activeBlink .55s ease-in-out infinite alternate;}
+.cell.active-cell{background:var(--active-bg)!important;border:4px solid var(--active-border)!important;box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 0 5px rgba(213,0,0,.30),inset 0 0 0 2px rgba(255,255,255,.7)!important;z-index:5!important;animation:activeBlink .55s ease-in-out infinite alternate;}
 @keyframes activeBlink{from{transform:scale(1);opacity:.82;}to{transform:scale(1.10);opacity:1;}}
 .char{display:block;line-height:1;font-family:"BIZ UDMincho","YuMincho","MS Mincho",serif;}
-.char.v-punct{position:absolute;right:2px;top:0px;font-size:22px;line-height:1;}
-.char.v-bracket{position:absolute;right:1px;top:0px;font-size:26px;line-height:1;}
-.char.v-small{font-size:20px;}
-.char.v-ascii{font-family:"Times New Roman",serif;font-size:24px;}
-#realInput{position:absolute;left:0;top:0;width:100%;height:100%;opacity:.02;z-index:10;border:0;resize:none;background:transparent;color:transparent;caret-color:transparent;font-size:24px;line-height:35px;overflow:hidden;outline:none;touch-action:none;-webkit-user-select:text;user-select:text;}
+.char.v-punct{position:absolute;right:2px;top:0px;font-size:16px;line-height:1;}
+.char.v-bracket{position:absolute;right:0px;top:0px;font-size:20px;line-height:1;}
+.char.v-small{font-size:14px;}
+.char.v-ascii{font-family:"Times New Roman",serif;font-size:18px;}
+#realInput{position:absolute;left:0;top:0;width:100%;height:100%;opacity:.02;z-index:10;border:0;resize:none;background:transparent;color:transparent;caret-color:transparent;font-size:18px;line-height:28px;overflow:hidden;outline:none;touch-action:none;-webkit-user-select:text;user-select:text;}
 
 /* タブ UI */
-.tabs{display:flex;gap:10px;margin-bottom:15px;border-bottom:2px solid #ecf0f1;padding-bottom:10px;flex-shrink:0;}
-.tab-btn{flex:1;padding:10px;border:none;background:#ecf0f1;border-radius:8px;cursor:pointer;font-weight:bold;color:#7f8c8d;transition:0.2s;}
+.tabs{display:flex;gap:8px;margin-bottom:10px;border-bottom:2px solid #ecf0f1;padding-bottom:5px;flex-shrink:0;}
+.tab-btn{flex:1;padding:8px;border:none;background:#ecf0f1;border-radius:8px;cursor:pointer;font-weight:bold;color:#7f8c8d;font-size:0.9rem;transition:0.2s;}
 .tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 3px 0 #a04000;}
-.tab-content{display:none;flex-direction:column;flex-grow:1;overflow-y:auto;padding-right:5px;}
+.tab-content{display:none;flex-direction:column;flex-grow:1;}
 .tab-content.active{display:flex;}
 
 /* チェックマシーン UI */
-.auto-badge{background:#e8f8f5;color:#1abc9c;font-size:.8rem;padding:4px 8px;border-radius:12px;border:1px solid #1abc9c;font-weight:bold;margin-left:auto;}
-.check-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:10px;}
-.check-item{background:var(--check-bg);border:2px solid #fadbd8;border-radius:8px;padding:12px 15px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:.2s;position:relative;overflow:hidden;}
+.auto-badge{background:#e8f8f5;color:#1abc9c;font-size:.75rem;padding:3px 6px;border-radius:12px;border:1px solid #1abc9c;font-weight:bold;margin-left:auto;}
+.check-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:5px;}
+.check-item{background:var(--check-bg);border:2px solid #fadbd8;border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:.2s;}
 .check-item:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,.1);}
 .check-item.checked{background:#e8f8f5;border-color:var(--check-active);}
 .check-item.auto-checked{animation:pulseLight .5s ease;}
 @keyframes pulseLight{0%{background:#f9ebea;}50%{background:#d1f2eb;}100%{background:#e8f8f5;}}
-.checkbox-mock{width:28px;height:28px;border-radius:50%;border:2px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.2rem;color:transparent;transition:.2s;}
+.checkbox-mock{width:22px;height:22px;border-radius:50%;border:2px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.9rem;color:transparent;transition:.2s;}
 .check-item.checked .checkbox-mock{background:var(--check-active);border-color:var(--check-active);color:white;}
-.check-text{font-size:0.95rem;line-height:1.4;font-weight:bold;flex-grow:1;}
+.check-text{font-size:0.85rem;line-height:1.3;font-weight:bold;flex-grow:1;}
 .check-item.checked .check-text{color:#27ae60;}
-.auto-label{font-size:.7rem;color:#1abc9c;background:white;padding:2px 6px;border-radius:10px;border:1px solid #1abc9c;display:none;margin-top:4px;width:fit-content;}
+.auto-label{font-size:.65rem;color:#1abc9c;background:white;padding:1px 5px;border-radius:10px;border:1px solid #1abc9c;display:none;margin-top:2px;width:fit-content;}
 .check-item.checked[data-auto="true"] .auto-label{display:block;}
-.progress-container{margin-top:20px;background:#eee;border-radius:10px;height:20px;overflow:hidden;border:1px solid #ddd;flex-shrink:0;}
+.progress-container{margin-top:15px;background:#eee;border-radius:10px;height:16px;overflow:hidden;border:1px solid #ddd;flex-shrink:0;}
 .progress-bar{height:100%;background:linear-gradient(90deg,#f1c40f,#f39c12);width:0%;transition:width .5s cubic-bezier(.4,0,.2,1);}
-.progress-text{text-align:center;margin-top:8px;font-weight:bold;font-size:1.1rem;color:#e67e22;flex-shrink:0;}
-.caution-box{margin-top:25px;background:#fff9e6;border:2px dashed #f1c40f;border-radius:8px;padding:15px;font-size:.95rem;flex-shrink:0;}
-.caution-box h3{color:#d35400;margin-bottom:10px;font-size:1.1rem;}
+.progress-text{text-align:center;margin-top:5px;font-weight:bold;font-size:0.95rem;color:#e67e22;flex-shrink:0;}
+.caution-box{margin-top:15px;background:#fff9e6;border:2px dashed #f1c40f;border-radius:8px;padding:10px;font-size:.85rem;flex-shrink:0;}
+.caution-box h3{color:#d35400;margin-bottom:5px;font-size:0.95rem;}
 .caution-box ul{list-style:none;padding-left:0;}
-.caution-box li{position:relative;padding-left:1.5em;margin-bottom:8px;line-height:1.5;color:#555;}
+.caution-box li{position:relative;padding-left:1.5em;margin-bottom:4px;line-height:1.4;color:#555;}
 .caution-box li::before{content:"💡";position:absolute;left:0;font-size:.9em;}
-#hanamaru{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:200px;pointer-events:none;opacity:0;z-index:1000;}
+#hanamaru{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:150px;pointer-events:none;opacity:0;z-index:1000;}
 @keyframes popIn{0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg);opacity:0;}70%{transform:translate(-50%,-50%) scale(1.1) rotate(10deg);opacity:1;}100%{transform:translate(-50%,-50%) scale(1) rotate(5deg);opacity:1;}}
 .show-hanamaru{animation:popIn .8s cubic-bezier(.175,.885,.32,1.275) forwards;}
 
-/* テンプレートUI */
-.step-box { background: #fdf2e9; border: 2px solid #fadbd8; border-radius: 8px; padding: 15px; margin-bottom: 15px; position: relative; }
+/* テンプレートUI（全体的にスリム化） */
+.step-box { background: #fdf2e9; border: 2px solid #fadbd8; border-radius: 8px; padding: 10px; margin-bottom: 8px; position: relative; }
 .step-box:last-child { margin-bottom: 0; }
-.step-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
-.step-badge { background: var(--primary); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; justify-content: center; align-items: center; font-size: 13px; }
-.input-group { margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; }
-.input-group label { font-size: 0.85rem; color: #555; font-weight: bold; }
-.form-control { width: 100%; padding: 8px; border: 1px solid #d5dbdb; border-radius: 6px; font-family: inherit; font-size: 0.95rem; }
+.step-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; }
+.step-badge { background: var(--primary); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 11px; }
+.input-group { margin-bottom: 5px; display: flex; flex-direction: column; gap: 2px; }
+.input-group label { font-size: 0.75rem; color: #555; font-weight: bold; }
+.form-control { width: 100%; padding: 5px; border: 1px solid #d5dbdb; border-radius: 6px; font-family: inherit; font-size: 0.85rem; }
 .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(211,84,0,0.2); }
-textarea.form-control { resize: vertical; min-height: 60px; }
-.flex-row { display: flex; gap: 10px; }
-.add-btn { background: #27ae60; color: white; width: 100%; margin-top: 5px; padding: 10px; font-size: 1rem; box-shadow: 0 3px 0 #229954; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.1s;}
+textarea.form-control { resize: vertical; min-height: 38px; }
+.flex-row { display: flex; gap: 8px; }
+.add-btn { background: #27ae60; color: white; width: 100%; margin-top: 3px; padding: 6px; font-size: 0.9rem; box-shadow: 0 3px 0 #229954; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.1s;}
 .add-btn:hover { background: #2ecc71; }
 .add-btn:active { transform: translateY(3px); box-shadow: none; }
 </style>
@@ -139,10 +146,10 @@ textarea.form-control { resize: vertical; min-height: 60px; }
     <!-- チェックタブの内容 -->
     <div id="tab-check" class="tab-content active">
       <div class="controls" style="margin-bottom:0;">
-        <h2 style="font-size:1.2rem;">できたかチェック！</h2>
+        <h2 style="font-size:1.1rem;">できたかチェック！</h2>
         <span class="auto-badge">🤖 自動</span>
       </div>
-      <p class="hint-text" style="color:#3498db;font-size:.85em;">マシーンが自動でチェックをつけるよ！ まちがっていたら自分でクリックして直してね。</p>
+      <p class="hint-text" style="color:#3498db;">マシーンが自動でチェックをつけるよ！ まちがっていたら自分でクリックして直してね。</p>
       
       <ul class="check-list" id="checkListUI"></ul>
       
@@ -163,9 +170,8 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 
     <!-- テンプレートタブの内容 -->
     <div id="tab-template" class="tab-content">
-      <h2 style="font-size:1.2rem;">かんたん作文テンプレート</h2>
-      <p class="hint-text" style="color:#3498db;font-size:0.85em; margin-bottom:15px;">
-        順番に入力して「原稿用紙にいれる」を押していこう！ 必要なマスあけ（段落など）も自動でやってくれるよ。
+      <p class="hint-text" style="color:#3498db; margin-bottom:10px;">
+        順番に入力して「原稿用紙にいれる」を押していこう！ 必要なマスあけも自動でやってくれるよ。
       </p>
       
       <!-- ①題名 -->
@@ -195,13 +201,11 @@ textarea.form-control { resize: vertical; min-height: 60px; }
       <div class="step-box">
         <div class="step-title"><span class="step-badge">3</span> はじめ（きっかけ）</div>
         <div class="input-group">
-          <label>読んだ本は？</label>
-          <input type="text" id="t-book" class="form-control" placeholder="本の名前">
+          <input type="text" id="t-book" class="form-control" placeholder="読んだ本の名前">
         </div>
         <div class="input-group">
-          <label>どうしてこの本を選んだの？</label>
           <select id="t-reason" class="form-control">
-            <option value="">（えらんでね）</option>
+            <option value="">選んだ理由は？（えらんでね）</option>
             <option value="表紙の絵がおもしろそうだった">表紙の絵がおもしろそうだった</option>
             <option value="タイトルが気になった">タイトルが気になった</option>
             <option value="好きなシリーズの本だった">好きなシリーズの本だった</option>
@@ -214,18 +218,17 @@ textarea.form-control { resize: vertical; min-height: 60px; }
       <!-- ④中 -->
       <div class="step-box">
         <div class="step-title"><span class="step-badge">4</span> 中（あらすじと感想）</div>
-        <div class="input-group">
-          <label>どんなお話？（かんたんに）</label>
-          <textarea id="t-summary" class="form-control" placeholder="例：主人公が冒険にでかけるお話"></textarea>
+        <div class="flex-row">
+          <div class="input-group" style="flex:1;">
+            <textarea id="t-summary" class="form-control" placeholder="どんなお話？（かんたんに）"></textarea>
+          </div>
+          <div class="input-group" style="flex:1;">
+            <textarea id="t-scene" class="form-control" placeholder="一番心に残ったところは？"></textarea>
+          </div>
         </div>
         <div class="input-group">
-          <label>一番心に残ったところは？</label>
-          <textarea id="t-scene" class="form-control" placeholder="例：ピンチをのりこえた場面"></textarea>
-        </div>
-        <div class="input-group">
-          <label>そのときどう思った？</label>
           <select id="t-feeling" class="form-control">
-            <option value="">（えらんでね）</option>
+            <option value="">そのときどう思った？（えらんでね）</option>
             <option value="とてもびっくりした">とてもびっくりした</option>
             <option value="ワクワクして楽しい気持ちになった">ワクワクして楽しい気持ちになった</option>
             <option value="悲しい気持ちになった">悲しい気持ちになった</option>
@@ -240,9 +243,8 @@ textarea.form-control { resize: vertical; min-height: 60px; }
       <div class="step-box">
         <div class="step-title"><span class="step-badge">5</span> 終わり（まとめ）</div>
         <div class="input-group">
-          <label>この本を読んでわかったことは？</label>
           <select id="t-conc1" class="form-control">
-            <option value="">（えらんでね）</option>
+            <option value="">読んでわかったことは？（えらんでね）</option>
             <option value="あきらめないことの大切さがわかりました">あきらめないことの大切さがわかりました</option>
             <option value="友達のたいせつさに気づきました">友達のたいせつさに気づきました</option>
             <option value="主人公のような人になりたいと思いました">主人公のような人になりたいと思いました</option>
@@ -250,9 +252,8 @@ textarea.form-control { resize: vertical; min-height: 60px; }
           </select>
         </div>
         <div class="input-group">
-          <label>これからはどうしたい？</label>
           <select id="t-conc2" class="form-control">
-            <option value="">（えらんでね）</option>
+            <option value="">これからはどうしたい？（えらんでね）</option>
             <option value="学んだことを自分もやってみたいです">学んだことを自分もやってみたいです</option>
             <option value="家族や友達にも教えてあげたいです">家族や友達にも教えてあげたいです</option>
             <option value="この作者のちがう本も読んでみたいです">この作者のちがう本も読んでみたいです</option>
@@ -279,8 +280,8 @@ const checklistData=[
 {id:'check2',text:'名前は、下から一ます空けて、みょう字と名前の間も空けて書いている。',evaluator:(lines,text)=>{if(lines.length<2)return false;const line=(lines[1]||'').replace(/\r/g,'');if(!/^ +/.test(line))return false;const hasSpaceInName=/^ +[^ ]+ +[^ ]+/.test(line);const isBottomOneSpace=line.length===19||(line.length===20&&line.endsWith(' '));return hasSpaceInName&&isBottomOneSpace;}},
 {id:'check3',text:'<ruby>段落<rt>だんらく</rt></ruby>の最初は、一ます空けている。',evaluator:(lines,text)=>lines.length>=3&&/^ [^ 「]/.test(lines[2]||'')},
 {id:'check4',text:'<ruby>句点<rt>くてん</rt></ruby>（。）や<ruby>読点<rt>とうてん</rt></ruby>（、）は、一ますに書いている。',evaluator:(lines,text)=>text.includes('。')||text.includes('、')},
-{id:'check5',text:'行をかえたら、一ます空けている。（「 」の後は そのまま書いているよ）',evaluator:(lines,text)=>{if(lines.length<=2)return false;let hasValidNewLine=false,hasInvalidNewLine=false,inQuote=false;for(let i=2;i<lines.length;i++){const line=lines[i]||'';if(line.trim()==='')continue;const startsWithSpace=/^ [^ ]/.test(line);const startsWithQuote=/^「/.test(line);if(startsWithSpace||startsWithQuote){hasValidNewLine=true;}else if(inQuote){}else{const prevLine=lines[i-1]||'';if(!prevLine.includes('」'))hasInvalidNewLine=true;}const countOpen=(line.match(/「/g)||[]).length;const countClose=(line.match(/」/g)||[]).length;if(countOpen>countClose)inQuote=true;else if(countClose>countOpen)inQuote=false;}return hasValidNewLine&&!hasInvalidNewLine;}},
-{id:'check6',text:'会話の文は、行をかえて、かぎ（「 」）をつけて書いている。',evaluator:(lines,text)=>/^「.*」/m.test(text)}
+{id:'check5',text:'行をかえたら、一ます空けている。',evaluator:(lines,text)=>{if(lines.length<=2)return false;let hasValidNewLine=false,hasInvalidNewLine=false,inQuote=false;for(let i=2;i<lines.length;i++){const line=lines[i]||'';if(line.trim()==='')continue;const startsWithSpace=/^ [^ ]/.test(line);const startsWithQuote=/^「/.test(line);if(startsWithSpace||startsWithQuote){hasValidNewLine=true;}else if(inQuote){}else{const prevLine=lines[i-1]||'';if(!prevLine.includes('」'))hasInvalidNewLine=true;}const countOpen=(line.match(/「/g)||[]).length;const countClose=(line.match(/」/g)||[]).length;if(countOpen>countClose)inQuote=true;else if(countClose>countOpen)inQuote=false;}return hasValidNewLine&&!hasInvalidNewLine;}},
+{id:'check6',text:'会話の文は、行をかえて、かぎ（「 」）をつけている。',evaluator:(lines,text)=>/^「.*」/m.test(text)}
 ];
 const sampleText=`  足元の動物たち
               北田 直矢
@@ -289,7 +290,8 @@ const sampleText=`  足元の動物たち
 と、おにいちゃんが言いました。ぼくとおにいちゃんは、何の動物のしゃしんがついているか、走って見に行きました。`;
 
 // --- 原稿用紙の基本システム ---
-const CELL_SIZE=35,MAX_LINES=20,MAX_CHARS=20,MAX_CELLS=400;
+// ★CSSの --cell-size:28px と合わせる
+const CELL_SIZE=28,MAX_LINES=20,MAX_CHARS=20,MAX_CELLS=400;
 const grid=document.getElementById('genkouGrid'),realInput=document.getElementById('realInput'),checkListUI=document.getElementById('checkListUI'),progressBar=document.getElementById('progressBar'),progressText=document.getElementById('progressText'),hanamaru=document.getElementById('hanamaru');
 let cells=[],cursorCell=0,cellToTextIndex=[],textIndexToCell=[];
 let checkStates={};checklistData.forEach(item=>checkStates[item.id]={auto:false,manual:null});
@@ -455,7 +457,7 @@ async function copyText(){
   try{await navigator.clipboard.writeText(text);}
   catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
   const btn=document.getElementById('copyBtn');
-  const original=btn.innerText;btn.innerText='コピーしたよ！';setTimeout(()=>btn.innerText=original,2000);
+  const original=btn.innerText;btn.innerText='コピー完了';setTimeout(()=>btn.innerText=original,2000);
 }
 
 function autoCheck(resetManual=true){
